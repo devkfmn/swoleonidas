@@ -4,6 +4,7 @@ import {
   endOfMonth,
   endOfWeek,
   format,
+  isSameDay,
   isSameMonth,
   parseISO,
   startOfMonth,
@@ -34,6 +35,7 @@ export function CalendarMonth({
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 })
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
+  const today = new Date()
   const dayMap = new Map(days.map((d) => [d.date, d]))
 
   return (
@@ -61,6 +63,7 @@ export function CalendarMonth({
           const dateStr = format(date, 'yyyy-MM-dd')
           const dayData = dayMap.get(dateStr)
           const inMonth = isSameMonth(date, month)
+          const isToday = isSameDay(date, today)
 
           return (
             <button
@@ -72,7 +75,7 @@ export function CalendarMonth({
                 inMonth
                   ? 'border-stone-border bg-stone-surface hover:bg-stone-elevated'
                   : 'border-transparent opacity-30'
-              }`}
+              } ${isToday ? 'ring-2 ring-blue-400' : ''}`}
             >
               <span className="text-sm font-medium">{format(date, 'd')}</span>
               {inMonth && dayData && (
