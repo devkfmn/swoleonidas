@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Cinzel", Georgia, serif;
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+
+  --color-marble: #f5f0e8;
+  --color-stone-surface: #ede8df;
+  --color-stone-elevated: #e4ddd2;
+  --color-stone-border: #d4cdc0;
+  --color-stone-muted: #9ca3af;
+  --color-ink: #1a1a1a;
+  --color-ink-muted: #5c5c5c;
+  --color-bronze: #b8860b;
+  --color-bronze-dark: #8b6914;
+  --color-status-complete: #2d6a4f;
+  --color-status-partial: #ca8a04;
+  --color-status-missed: #9b2c2c;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-marble text-ink;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .stone-tablet {
+    @apply border border-stone-border bg-stone-surface shadow-sm;
+    box-shadow:
+      0 1px 2px rgba(26, 26, 26, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .greek-key-divider {
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 6px,
+      #b8860b 6px,
+      #b8860b 8px,
+      transparent 8px,
+      transparent 14px,
+      #b8860b 14px,
+      #b8860b 16px
+    );
+    background-size: 32px 100%;
+    opacity: 0.35;
+  }
+}
