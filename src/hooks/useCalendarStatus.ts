@@ -8,7 +8,7 @@ import {
 } from 'date-fns'
 import type { Program } from '../lib/validation/programSchema'
 import type { CompletionLog, DayStatus } from '../types/program'
-import { getCompletionLogsForRange } from '../lib/firebase/firestore'
+import { getCompletionLogsForRange, subscribeCompletionLogsForRange } from '../lib/firebase/firestore'
 import { getDayStatus } from '../lib/schedule/getDayStatus'
 import { getWorkoutForDate } from '../lib/schedule/getWorkoutForDate'
 import { useAuth } from './useAuth'
@@ -42,16 +42,22 @@ export function useCalendarStatus(program: Program | null, month: Date) {
 
     let cancelled = false
     setLoading(true)
-    getCompletionLogsForRange(user.uid, program.programId, range.start, range.end)
-      .then((data) => {
-        if (!cancelled) setLogs(data)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    const unsub = subscribeCompletionLogsForRange(
+      user.uid,
+      program.programId,
+      range.start,
+      range.end,
+      (data) => {
+        if (!cancelled) {
+          setLogs(data)
+          setLoading(false)
+        }
+      },
+    )
 
     return () => {
       cancelled = true
+      unsub()
     }
   }, [user, program, range.start, range.end])
 

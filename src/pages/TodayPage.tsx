@@ -162,7 +162,11 @@ export function TodayPage() {
         >
           {useMinimum || log?.usedMinimumVersion ? 'Using minimum' : 'Use minimum version'}
         </StoneButton>
-        <StoneButton variant="ghost" onClick={resetDay}>
+        <StoneButton variant="ghost" onClick={async () => {
+          await resetDay()
+          setUseMinimum(false)
+          setNoteDraft('')
+        }}>
           Reset today
         </StoneButton>
       </div>

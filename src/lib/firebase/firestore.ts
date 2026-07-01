@@ -183,10 +183,11 @@ export async function saveCompletionLog(userId: string, log: CompletionLog) {
   const id = completionLogId(log.date, log.programId)
   const ref = completionLogDocRef(userId, id)
   const existing = await getDoc(ref)
+  const sanitizedLog = sanitizeForFirestore(log)
   await setDoc(
     ref,
     {
-      ...log,
+      ...sanitizedLog,
       updatedAt: serverTimestamp(),
       createdAt: existing.exists() ? existing.data().createdAt : serverTimestamp(),
     },
@@ -212,6 +213,28 @@ export async function getCompletionLogsForRange(
   )
   const snap = await getDocs(q)
   return snap.docs.map((d) => d.data() as CompletionLog)
+}
+
+export function subscribeCompletionLogsForRange(
+  userId: string,
+  programId: string,
+  startDate: string,
+  endDate: string,
+  callback: (logs: CompletionLog[]) => void,
+): Unsubscribe {
+  const q = query(
+    completionLogsRef(userId),
+    where('programId', '==', programId),
+    where('date', '>=', startDate),
+    where('date', '<=', endDate),
+  )
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      callback(snapshot.docs.map((d) => d.data() as CompletionLog))
+    },
+    snapshotErrorHandler('completionLogs'),
+  )
 }
 
 export async function resetAllLogsForProgram(userId: string, programId: string) {

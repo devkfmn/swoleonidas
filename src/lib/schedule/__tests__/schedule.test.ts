@@ -92,5 +92,77 @@ describe('schedule engine', () => {
       today,
     )
     expect(complete).toBe('complete')
+
+    const todayComplete = getDayStatus(
+      program,
+      today,
+      {
+        date: '2026-07-05',
+        programId: 'test',
+        workoutId: 'mini',
+        usedMinimumVersion: false,
+        items: [{ exerciseId: 'push_up', completed: true }],
+        note: '',
+      },
+      today,
+    )
+    expect(todayComplete).toBe('complete')
+
+    expect(getDayStatus(program, today, null, today)).toBe('missed')
+  })
+
+  it('marks complete when every scheduled exercise is done, ignoring extra log entries', () => {
+    const today = parseISO('2026-07-05')
+    const multiExerciseProgram: Program = {
+      ...program,
+      exercises: [
+        { id: 'push_up', name: 'Push-up', category: 'strength', unit: 'reps' },
+        { id: 'squat', name: 'Squat', category: 'strength', unit: 'reps' },
+      ],
+      workouts: [
+        {
+          id: 'mini',
+          name: 'Mini',
+          estimatedMinutes: 5,
+          items: [
+            {
+              id: 'i1',
+              exerciseId: 'push_up',
+              sets: 1,
+              target: 10,
+              unit: 'reps',
+            },
+            {
+              id: 'i2',
+              exerciseId: 'squat',
+              sets: 1,
+              target: 10,
+              unit: 'reps',
+            },
+          ],
+          minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
+        },
+      ],
+    }
+
+    expect(
+      getDayStatus(
+        multiExerciseProgram,
+        today,
+        {
+          date: '2026-07-05',
+          programId: 'test',
+          workoutId: 'mini',
+          usedMinimumVersion: false,
+          items: [
+            { exerciseId: 'push_up', completed: true },
+            { exerciseId: 'squat', completed: true },
+            { exerciseId: 'old_exercise', completed: true },
+          ],
+          note: '',
+        },
+        today,
+      ),
+    ).toBe('complete')
   })
 })

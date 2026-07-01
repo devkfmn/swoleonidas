@@ -28,6 +28,31 @@ function buildDefaultLog(
   }
 }
 
+function syncLogWithWorkout(
+  log: CompletionLog | null,
+  date: string,
+  programId: string,
+  workout: ResolvedWorkout,
+): CompletionLog {
+  const base = log ?? buildDefaultLog(date, programId, workout)
+  const items: CompletionLogItem[] = workout.items.map((item) => {
+    const existing = base.items?.find((i) => i.exerciseId === item.exerciseId)
+    return {
+      exerciseId: item.exerciseId,
+      completed: existing?.completed ?? false,
+      actual: existing?.actual,
+    }
+  })
+
+  return {
+    ...base,
+    date,
+    programId,
+    workoutId: workout.id,
+    items,
+  }
+}
+
 export function useCompletionLog(
   date: string,
   programId: string | null,
@@ -52,10 +77,9 @@ export function useCompletionLog(
     return unsub
   }, [user, date, programId])
 
-  const ensureLog = useCallback((): CompletionLog | null => {
+  const prepareLog = useCallback((): CompletionLog | null => {
     if (!workout || !programId) return null
-    if (log) return log
-    return buildDefaultLog(date, programId, workout)
+    return syncLogWithWorkout(log, date, programId, workout)
   }, [log, workout, programId, date])
 
   const persist = useCallback(
@@ -68,36 +92,39 @@ export function useCompletionLog(
 
   const toggleExercise = useCallback(
     async (exerciseId: string, completed: boolean, actual?: number) => {
-      const base = ensureLog()
-      if (!base) return
-      const items: CompletionLogItem[] = base.items.map((item) =>
-        item.exerciseId === exerciseId ? { ...item, completed, actual } : item,
-      )
+      const base = prepareLog()
+      if (!base || !workout) return
+      const items = base.items.map((item) => {
+        if (item.exerciseId !== exerciseId) return item
+        const updated: CompletionLogItem = { exerciseId, completed }
+        if (actual !== undefined) updated.actual = actual
+        return updated
+      })
       await persist({ ...base, items })
     },
-    [ensureLog, persist],
+    [prepareLog, persist, workout],
   )
 
   const setMinimumVersion = useCallback(
     async (used: boolean) => {
-      const base = ensureLog()
-      if (!base || !workout) return
+      const base = prepareLog()
+      if (!base) return
       await persist({ ...base, usedMinimumVersion: used })
     },
-    [ensureLog, persist, workout],
+    [prepareLog, persist],
   )
 
   const setNote = useCallback(
     async (note: string) => {
-      const base = ensureLog()
+      const base = prepareLog()
       if (!base) return
       await persist({ ...base, note })
     },
-    [ensureLog, persist],
+    [prepareLog, persist],
   )
 
   const markAllComplete = useCallback(async () => {
-    const base = ensureLog()
+    const base = prepareLog()
     if (!base || !workout) return
     const items = workout.items.map((item) => {
       const existing = base.items.find((i) => i.exerciseId === item.exerciseId)
@@ -108,7 +135,7 @@ export function useCompletionLog(
       }
     })
     await persist({ ...base, items })
-  }, [ensureLog, persist, workout])
+  }, [prepareLog, persist, workout])
 
   const resetDay = useCallback(async () => {
     if (!user || !programId) return
