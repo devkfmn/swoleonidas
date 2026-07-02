@@ -51,7 +51,6 @@ export function getWorkoutForDate(program: Program, date: Date): ScheduledDay {
     name: workout.name,
     description: workout.description,
     estimatedMinutes: workout.estimatedMinutes,
-    minimumVersion: workout.minimumVersion,
     items: workout.items.map((item) => {
       const exercise = exerciseMap.get(item.exerciseId)
       const target = applyProgression(item, elapsedDays, elapsedWeeks)

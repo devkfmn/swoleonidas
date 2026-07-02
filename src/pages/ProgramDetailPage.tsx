@@ -1,14 +1,24 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { GreekCard } from '../components/ui/GreekCard'
 import { PageHeader } from '../components/ui/Icons'
 import { StoneButton } from '../components/ui/StoneButton'
 import { usePrograms } from '../hooks/usePrograms'
+import { formatFirebaseError } from '../lib/firebase/utils'
 
 export function ProgramDetailPage() {
+  const navigate = useNavigate()
   const { programId } = useParams<{ programId: string }>()
-  const { programs, loading } = usePrograms()
+  const { programs, loading, updateStartDate, duplicateProgram } = usePrograms()
   const [showJson, setShowJson] = useState(false)
+  const [startDateDraft, setStartDateDraft] = useState('')
+  const [duplicateOpen, setDuplicateOpen] = useState(false)
+  const [duplicateId, setDuplicateId] = useState('')
+  const [duplicateName, setDuplicateName] = useState('')
+  const [duplicateStartDate, setDuplicateStartDate] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   const stored = programs.find((p) => p.program.programId === programId)
 
@@ -27,6 +37,15 @@ export function ProgramDetailPage() {
   }
 
   const { program } = stored
+  const effectiveStartDate = startDateDraft || program.startDate
+
+  const openDuplicateDialog = () => {
+    setDuplicateId(`${program.programId}-copy`)
+    setDuplicateName(`${program.programName} (Copy)`)
+    setDuplicateStartDate(program.startDate)
+    setActionError(null)
+    setDuplicateOpen(true)
+  }
 
   return (
     <>
@@ -48,6 +67,54 @@ export function ProgramDetailPage() {
             <dd className="font-medium">{program.startDate}</dd>
           </div>
         </dl>
+      </GreekCard>
+
+      <GreekCard title="Program actions" className="mb-4">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-sm text-ink-muted">Change start date</label>
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="date"
+                value={effectiveStartDate}
+                onChange={(e) => setStartDateDraft(e.target.value)}
+                className="rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
+              />
+              <StoneButton
+                variant="secondary"
+                disabled={saving || effectiveStartDate === program.startDate}
+                onClick={async () => {
+                  setSaving(true)
+                  setActionError(null)
+                  try {
+                    await updateStartDate(program.programId, effectiveStartDate)
+                    setStartDateDraft('')
+                  } catch (error) {
+                    setActionError(formatFirebaseError(error))
+                  } finally {
+                    setSaving(false)
+                  }
+                }}
+              >
+                Save start date
+              </StoneButton>
+            </div>
+            <p className="mt-2 text-xs text-ink-muted">
+              Completion logs stay on calendar dates; the schedule shifts relative to the new start.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <StoneButton variant="secondary" onClick={openDuplicateDialog}>
+              Duplicate program
+            </StoneButton>
+            <Link to="/import" state={{ updateProgramId: program.programId }}>
+              <StoneButton variant="secondary">Update from JSON</StoneButton>
+            </Link>
+          </div>
+
+          {actionError && <p className="text-sm text-status-missed">{actionError}</p>}
+        </div>
       </GreekCard>
 
       <GreekCard title="Phases" className="mb-4">
@@ -109,6 +176,62 @@ export function ProgramDetailPage() {
       <Link to="/programs" className="mt-6 inline-block">
         <StoneButton variant="ghost">← Back to Programs</StoneButton>
       </Link>
+
+      <ConfirmDialog
+        open={duplicateOpen}
+        title="Duplicate program?"
+        message="Creates a new program with a fresh copy of the plan. Completion logs are not copied."
+        confirmLabel="Duplicate"
+        onCancel={() => setDuplicateOpen(false)}
+        onConfirm={async () => {
+          setSaving(true)
+          setActionError(null)
+          try {
+            const duplicated = await duplicateProgram(
+              program.programId,
+              duplicateId.trim(),
+              duplicateStartDate,
+              duplicateName.trim() || undefined,
+            )
+            setDuplicateOpen(false)
+            navigate(`/programs/${duplicated.programId}`)
+          } catch (error) {
+            setActionError(formatFirebaseError(error))
+          } finally {
+            setSaving(false)
+          }
+        }}
+      >
+        <div className="mt-4 space-y-3 text-left">
+          <label className="block">
+            <span className="mb-1 block text-sm text-ink-muted">New program ID</span>
+            <input
+              type="text"
+              value={duplicateId}
+              onChange={(e) => setDuplicateId(e.target.value)}
+              className="w-full rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm text-ink-muted">Program name</span>
+            <input
+              type="text"
+              value={duplicateName}
+              onChange={(e) => setDuplicateName(e.target.value)}
+              className="w-full rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm text-ink-muted">Start date</span>
+            <input
+              type="date"
+              value={duplicateStartDate}
+              onChange={(e) => setDuplicateStartDate(e.target.value)}
+              className="w-full rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
+            />
+          </label>
+        </div>
+      </ConfirmDialog>
     </>
   )
 }

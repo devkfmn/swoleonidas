@@ -2,6 +2,7 @@ import { isAfter, startOfDay } from 'date-fns'
 import type { CompletionLog } from '../../types/program'
 import type { DayStatus } from '../../types/program'
 import type { Program } from '../validation/programSchema'
+import { getProgramSettings } from './getProgramSettings'
 import { getWorkoutForDate } from './getWorkoutForDate'
 
 function countCompletedWorkoutItems(
@@ -42,7 +43,8 @@ export function getDayStatus(
   }
 
   if (completedCount > 0 && completedCount < itemCount) {
-    return 'partial'
+    const { allowPartialCompletion } = getProgramSettings(program)
+    return allowPartialCompletion ? 'partial' : 'missed'
   }
 
   return 'missed'

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { StoneButton } from './StoneButton'
 import { GreekCard } from './GreekCard'
 
@@ -9,6 +10,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void
   onCancel: () => void
   destructive?: boolean
+  children?: ReactNode
 }
 
 export function ConfirmDialog({
@@ -19,6 +21,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   destructive,
+  children,
 }: ConfirmDialogProps) {
   if (!open) return null
 
@@ -27,6 +30,7 @@ export function ConfirmDialog({
       <GreekCard className="w-full max-w-md shadow-xl">
         <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
         <p className="mt-2 text-sm text-ink-muted">{message}</p>
+        {children}
         <div className="mt-6 flex gap-3">
           <StoneButton variant="secondary" fullWidth onClick={onCancel}>
             Cancel

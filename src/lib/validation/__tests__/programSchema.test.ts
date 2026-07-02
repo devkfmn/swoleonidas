@@ -30,7 +30,6 @@ const validProgram = {
           progression: { type: 'linear_daily', increaseBy: 1, cap: 20 },
         },
       ],
-      minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
     },
   ],
   phases: [

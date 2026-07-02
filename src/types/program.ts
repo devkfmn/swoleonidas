@@ -1,4 +1,4 @@
-export type { Program, Exercise, Workout, Phase, WorkoutItem, MinimumVersionItem } from '../lib/validation/programSchema'
+export type { Program, Exercise, Workout, Phase, WorkoutItem } from '../lib/validation/programSchema'
 
 export interface CompletionLogItem {
   exerciseId: string
@@ -10,7 +10,6 @@ export interface CompletionLog {
   date: string
   programId: string
   workoutId: string
-  usedMinimumVersion: boolean
   items: CompletionLogItem[]
   note: string
   createdAt?: unknown

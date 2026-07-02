@@ -18,7 +18,6 @@ function buildDefaultLog(
     date,
     programId,
     workoutId: workout.id,
-    usedMinimumVersion: false,
     note: '',
     items: workout.items.map((item) => ({
       exerciseId: item.exerciseId,
@@ -105,15 +104,6 @@ export function useCompletionLog(
     [prepareLog, persist, workout],
   )
 
-  const setMinimumVersion = useCallback(
-    async (used: boolean) => {
-      const base = prepareLog()
-      if (!base) return
-      await persist({ ...base, usedMinimumVersion: used })
-    },
-    [prepareLog, persist],
-  )
-
   const setNote = useCallback(
     async (note: string) => {
       const base = prepareLog()
@@ -154,7 +144,6 @@ export function useCompletionLog(
     log,
     loading,
     toggleExercise,
-    setMinimumVersion,
     setNote,
     markAllComplete,
     resetDay,

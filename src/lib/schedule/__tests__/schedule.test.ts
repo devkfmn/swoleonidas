@@ -29,7 +29,6 @@ const program: Program = {
           progression: { type: 'linear_daily', increaseBy: 1, cap: 15 },
         },
       ],
-      minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
     },
   ],
   phases: [
@@ -85,7 +84,6 @@ describe('schedule engine', () => {
         date: '2026-07-01',
         programId: 'test',
         workoutId: 'mini',
-        usedMinimumVersion: false,
         items: [{ exerciseId: 'push_up', completed: true }],
         note: '',
       },
@@ -100,7 +98,6 @@ describe('schedule engine', () => {
         date: '2026-07-05',
         programId: 'test',
         workoutId: 'mini',
-        usedMinimumVersion: false,
         items: [{ exerciseId: 'push_up', completed: true }],
         note: '',
       },
@@ -140,7 +137,6 @@ describe('schedule engine', () => {
               unit: 'reps',
             },
           ],
-          minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
         },
       ],
     }
@@ -153,7 +149,6 @@ describe('schedule engine', () => {
           date: '2026-07-05',
           programId: 'test',
           workoutId: 'mini',
-          usedMinimumVersion: false,
           items: [
             { exerciseId: 'push_up', completed: true },
             { exerciseId: 'squat', completed: true },
@@ -164,5 +159,46 @@ describe('schedule engine', () => {
         today,
       ),
     ).toBe('complete')
+  })
+
+  it('treats partial completion as missed when allowPartialCompletion is false', () => {
+    const today = parseISO('2026-07-05')
+    const strictProgram: Program = {
+      ...program,
+      settings: { allowPartialCompletion: false },
+      exercises: [
+        { id: 'push_up', name: 'Push-up', category: 'strength', unit: 'reps' },
+        { id: 'squat', name: 'Squat', category: 'strength', unit: 'reps' },
+      ],
+      workouts: [
+        {
+          id: 'mini',
+          name: 'Mini',
+          estimatedMinutes: 5,
+          items: [
+            { id: 'i1', exerciseId: 'push_up', sets: 1, target: 10, unit: 'reps' },
+            { id: 'i2', exerciseId: 'squat', sets: 1, target: 10, unit: 'reps' },
+          ],
+        },
+      ],
+    }
+
+    expect(
+      getDayStatus(
+        strictProgram,
+        today,
+        {
+          date: '2026-07-05',
+          programId: 'test',
+          workoutId: 'mini',
+          items: [
+            { exerciseId: 'push_up', completed: true },
+            { exerciseId: 'squat', completed: false },
+          ],
+          note: '',
+        },
+        today,
+      ),
+    ).toBe('missed')
   })
 })

@@ -26,7 +26,6 @@ const program: Program = {
           unit: 'reps',
         },
       ],
-      minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
     },
   ],
   phases: [
@@ -50,7 +49,6 @@ function log(date: string, completed: boolean): CompletionLog {
     date,
     programId: 'test',
     workoutId: 'mini',
-    usedMinimumVersion: false,
     items: [{ exerciseId: 'push_up', completed }],
     note: '',
   }
@@ -83,7 +81,6 @@ describe('getProgramStats', () => {
             { id: 'i1', exerciseId: 'push_up', sets: 1, target: 10, unit: 'reps' },
             { id: 'i2', exerciseId: 'squat', sets: 1, target: 10, unit: 'reps' },
           ],
-          minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
         },
       ],
     }
@@ -92,7 +89,6 @@ describe('getProgramStats', () => {
         date: '2026-07-01',
         programId: 'test',
         workoutId: 'mini',
-        usedMinimumVersion: false,
         items: [
           { exerciseId: 'push_up', completed: true },
           { exerciseId: 'squat', completed: true },
@@ -103,7 +99,6 @@ describe('getProgramStats', () => {
         date: '2026-07-03',
         programId: 'test',
         workoutId: 'mini',
-        usedMinimumVersion: false,
         items: [
           { exerciseId: 'push_up', completed: true },
           { exerciseId: 'squat', completed: false },
@@ -212,16 +207,5 @@ describe('getProgramStats', () => {
     expect(stats.phaseDay).toBe(10)
     expect(stats.phaseTotalDays).toBe(28)
     expect(stats.phasePercent).toBe(36)
-  })
-
-  it('counts minimum version days', () => {
-    const logs: CompletionLog[] = [
-      {
-        ...log('2026-07-01', true),
-        usedMinimumVersion: true,
-      },
-    ]
-    const stats = getProgramStats(program, logs, today)
-    expect(stats.totals.minimumVersionDays).toBe(1)
   })
 })

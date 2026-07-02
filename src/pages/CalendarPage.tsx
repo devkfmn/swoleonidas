@@ -99,11 +99,18 @@ export function CalendarPage() {
                     )
                   })}
                 </ul>
-                {selected.log?.usedMinimumVersion && (
-                  <p className="text-sm text-bronze">Minimum version used</p>
-                )}
                 {selected.log?.note && (
                   <p className="text-sm italic text-ink-muted">"{selected.log.note}"</p>
+                )}
+                {!selected.scheduled.isRestDay && selected.status !== 'future' && (
+                  <StoneButton
+                    className="mt-2"
+                    onClick={() => navigate(`/today?date=${selected.date}`)}
+                  >
+                    {selected.status === 'complete' || selected.status === 'partial'
+                      ? 'Edit log'
+                      : 'Log workout'}
+                  </StoneButton>
                 )}
               </div>
             )}

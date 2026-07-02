@@ -35,20 +35,12 @@ export const workoutItemSchema = z.object({
   progression: progressionSchema.optional(),
 })
 
-export const minimumVersionItemSchema = z.object({
-  exerciseId: z.string().min(1),
-  sets: z.number().int().positive(),
-  target: z.number().positive(),
-  unit: unitSchema,
-})
-
 export const workoutSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
   estimatedMinutes: z.number().int().positive().optional(),
   items: z.array(workoutItemSchema).min(1),
-  minimumVersion: z.array(minimumVersionItemSchema).min(1),
 })
 
 export const scheduleEntrySchema = z.object({
@@ -66,10 +58,10 @@ export const phaseSchema = z.object({
 })
 
 export const programSettingsSchema = z.object({
-  missedBehavior: z.string().optional(),
-  trackingLevel: z.string().optional(),
+  missedBehavior: z.enum(['mark_missed']).optional(),
+  trackingLevel: z.enum(['exercise']).optional(),
   allowPartialCompletion: z.boolean().optional(),
-  restDayStatus: z.string().optional(),
+  restDayStatus: z.enum(['rest']).optional(),
 })
 
 export const programSchema = z
@@ -121,14 +113,6 @@ export const programSchema = z
           })
         }
       }
-      for (const minItem of workout.minimumVersion) {
-        if (!exerciseIdSet.has(minItem.exerciseId)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Workout "${workout.id}" minimumVersion references unknown exerciseId "${minItem.exerciseId}"`,
-          })
-        }
-      }
     }
 
     for (const phase of data.phases) {
@@ -159,7 +143,6 @@ export type Unit = z.infer<typeof unitSchema>
 export type Progression = z.infer<typeof progressionSchema>
 export type Exercise = z.infer<typeof exerciseSchema>
 export type WorkoutItem = z.infer<typeof workoutItemSchema>
-export type MinimumVersionItem = z.infer<typeof minimumVersionItemSchema>
 export type Workout = z.infer<typeof workoutSchema>
 export type ScheduleEntry = z.infer<typeof scheduleEntrySchema>
 export type Phase = z.infer<typeof phaseSchema>

@@ -3,20 +3,33 @@ import type { Program } from '../../lib/validation/programSchema'
 import { validateProgramJson } from '../../lib/validation/validateProgramJson'
 import { buildProgramPrompt, canBuildProgramPrompt } from '../../lib/prompt/buildProgramPrompt'
 import { exampleProgram } from '../../data/exampleProgram'
+import { ConfirmDialog } from '../ui/ConfirmDialog'
 import { GreekCard } from '../ui/GreekCard'
 import { StoneButton } from '../ui/StoneButton'
 import { ValidationErrors } from '../ui/ValidationErrors'
 
 interface ImportJsonPanelProps {
-  onImport: (program: Program) => Promise<void>
+  onImport: (program: Program, mode: 'create' | 'update') => Promise<'created' | 'updated'>
   importing?: boolean
   importError?: string | null
+  hasProgram: (programId: string) => boolean
+  lastImported: Program | null
+  onActivateAndStart: () => void
+  onViewPrograms: () => void
 }
 
 const inputClassName =
   'w-full rounded-lg border border-stone-border bg-stone-surface p-3 text-sm'
 
-export function ImportJsonPanel({ onImport, importing, importError }: ImportJsonPanelProps) {
+export function ImportJsonPanel({
+  onImport,
+  importing,
+  importError,
+  hasProgram,
+  lastImported,
+  onActivateAndStart,
+  onViewPrograms,
+}: ImportJsonPanelProps) {
   const [goal, setGoal] = useState('')
   const [equipment, setEquipment] = useState('')
   const [duration, setDuration] = useState('')
@@ -24,6 +37,8 @@ export function ImportJsonPanel({ onImport, importing, importError }: ImportJson
   const [jsonText, setJsonText] = useState('')
   const [errors, setErrors] = useState<string[]>([])
   const [validated, setValidated] = useState<Program | null>(null)
+  const [pendingProgram, setPendingProgram] = useState<Program | null>(null)
+  const [confirmUpdate, setConfirmUpdate] = useState(false)
 
   const promptInput = { goal, equipment, duration }
   const promptReady = canBuildProgramPrompt(promptInput)
@@ -40,6 +55,18 @@ export function ImportJsonPanel({ onImport, importing, importError }: ImportJson
     }
   }
 
+  const runImport = async (program: Program, mode: 'create' | 'update') => {
+    try {
+      await onImport(program, mode)
+      setJsonText('')
+      setValidated(null)
+      setPendingProgram(null)
+      setConfirmUpdate(false)
+    } catch {
+      // Import errors are shown by the parent via importError
+    }
+  }
+
   const handleImport = async () => {
     const result = validateProgramJson(jsonText)
     if (!result.success) {
@@ -51,13 +78,13 @@ export function ImportJsonPanel({ onImport, importing, importError }: ImportJson
     setErrors([])
     setValidated(result.data)
 
-    try {
-      await onImport(result.data)
-      setJsonText('')
-      setValidated(null)
-    } catch {
-      // Import errors are shown by the parent via importError
+    if (hasProgram(result.data.programId)) {
+      setPendingProgram(result.data)
+      setConfirmUpdate(true)
+      return
     }
+
+    await runImport(result.data, 'create')
   }
 
   const handleCopyPrompt = async () => {
@@ -190,6 +217,38 @@ export function ImportJsonPanel({ onImport, importing, importError }: ImportJson
           </dl>
         </GreekCard>
       )}
+
+      {lastImported && (
+        <GreekCard className="border-status-complete/30 bg-status-complete/10">
+          <p className="text-sm text-status-complete">
+            <span className="font-semibold">{lastImported.programName}</span> imported successfully.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <StoneButton onClick={onActivateAndStart} disabled={importing}>
+              Activate and start
+            </StoneButton>
+            <StoneButton variant="secondary" onClick={onViewPrograms}>
+              View programs
+            </StoneButton>
+          </div>
+        </GreekCard>
+      )}
+
+      <ConfirmDialog
+        open={confirmUpdate}
+        title="Update existing program?"
+        message="A program with this ID already exists. Updating will replace the plan but preserve completion logs."
+        confirmLabel="Update program"
+        onCancel={() => {
+          setConfirmUpdate(false)
+          setPendingProgram(null)
+        }}
+        onConfirm={() => {
+          if (pendingProgram) {
+            void runImport(pendingProgram, 'update')
+          }
+        }}
+      />
     </div>
   )
 }

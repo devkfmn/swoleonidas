@@ -98,6 +98,93 @@ export async function importProgram(userId: string, program: Program) {
   })
 }
 
+export async function upsertProgram(userId: string, program: Program) {
+  const ref = programDocRef(userId, program.programId)
+  const existing = await getDoc(ref)
+  const sanitizedProgram = sanitizeForFirestore(program)
+
+  if (existing.exists()) {
+    await setDoc(
+      ref,
+      {
+        program: sanitizedProgram,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    )
+    return 'updated' as const
+  }
+
+  await setDoc(ref, {
+    program: sanitizedProgram,
+    importedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    isActive: false,
+  })
+  return 'created' as const
+}
+
+export async function updateProgramStartDate(
+  userId: string,
+  programId: string,
+  startDate: string,
+) {
+  const ref = programDocRef(userId, programId)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) {
+    throw new Error('Program not found.')
+  }
+
+  const data = snap.data()
+  const program = data.program as Program
+  await setDoc(
+    ref,
+    {
+      program: sanitizeForFirestore({ ...program, startDate }),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  )
+}
+
+export async function duplicateProgram(
+  userId: string,
+  sourceProgramId: string,
+  newProgramId: string,
+  newStartDate: string,
+  newProgramName?: string,
+) {
+  const sourceRef = programDocRef(userId, sourceProgramId)
+  const sourceSnap = await getDoc(sourceRef)
+  if (!sourceSnap.exists()) {
+    throw new Error('Source program not found.')
+  }
+
+  const source = sourceSnap.data()
+  const program = source.program as Program
+  const duplicated: Program = {
+    ...program,
+    programId: newProgramId,
+    programName: newProgramName ?? `${program.programName} (Copy)`,
+    startDate: newStartDate,
+  }
+
+  const destRef = programDocRef(userId, newProgramId)
+  const destExists = await getDoc(destRef)
+  if (destExists.exists()) {
+    throw new Error('A program with this ID already exists.')
+  }
+
+  await setDoc(destRef, {
+    program: sanitizeForFirestore(duplicated),
+    importedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    isActive: false,
+  })
+
+  return duplicated
+}
+
 export async function activateProgram(userId: string, programId: string) {
   const programsSnap = await getDocs(programsRef(userId))
   const batch = writeBatch(db())

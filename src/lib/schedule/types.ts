@@ -1,4 +1,4 @@
-import type { Phase, Program, Workout, WorkoutItem, MinimumVersionItem } from '../validation/programSchema'
+import type { Phase, Program, Workout, WorkoutItem } from '../validation/programSchema'
 
 export interface ResolvedWorkoutItem {
   id: string
@@ -16,7 +16,6 @@ export interface ResolvedWorkout {
   description?: string
   estimatedMinutes?: number
   items: ResolvedWorkoutItem[]
-  minimumVersion: MinimumVersionItem[]
 }
 
 export interface ScheduledDay {

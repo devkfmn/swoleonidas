@@ -124,7 +124,7 @@ npx -y firebase-tools@latest deploy --only firestore:rules
 | Collection path | Document ID | Fields |
 |-----------------|-------------|--------|
 | `users/{uid}/programs/{programId}` | `program.programId` | `program`, `importedAt`, `updatedAt`, `isActive` |
-| `users/{uid}/completionLogs/{date}_{programId}` | `{YYYY-MM-DD}_{programId}` | `date`, `programId`, `workoutId`, `usedMinimumVersion`, `items`, `note`, `createdAt`, `updatedAt` |
+| `users/{uid}/completionLogs/{date}_{programId}` | `{YYYY-MM-DD}_{programId}` | `date`, `programId`, `workoutId`, `items`, `note`, `createdAt`, `updatedAt` |
 | `users/{uid}/settings/main` | `main` | `activeProgramId`, `createdAt`, `updatedAt` |
 
 ## Vercel deployment

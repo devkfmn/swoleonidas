@@ -74,11 +74,6 @@ export function DashboardPage() {
               </dd>
             </div>
           </dl>
-          {totals.minimumVersionDays > 0 && (
-            <p className="mt-4 text-center text-xs text-ink-muted">
-              {totals.minimumVersionDays} day{totals.minimumVersionDays === 1 ? '' : 's'} using minimum version
-            </p>
-          )}
         </GreekCard>
 
         <WeeklyAdherenceList weeks={stats.weeklyAdherence} />

@@ -42,7 +42,6 @@ export interface ProgramStats {
     partial: number
     missed: number
     rest: number
-    minimumVersionDays: number
   }
   weeklyAdherence: WeeklyAdherenceRow[]
 }
@@ -133,7 +132,6 @@ export function getProgramStats(
     partial: 0,
     missed: 0,
     rest: 0,
-    minimumVersionDays: 0,
   }
 
   const weekMap = new Map<number, WeeklyAdherenceRow>()
@@ -152,10 +150,6 @@ export function getProgramStats(
       else if (status === 'partial') totals.partial++
       else if (status === 'missed') totals.missed++
       else if (status === 'rest') totals.rest++
-
-      if (log?.usedMinimumVersion && isWorkoutDay(program, date)) {
-        totals.minimumVersionDays++
-      }
 
       if (isWorkoutDay(program, date)) {
         workoutDaysPast++

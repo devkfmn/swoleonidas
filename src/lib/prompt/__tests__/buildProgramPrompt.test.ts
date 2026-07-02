@@ -38,7 +38,7 @@ describe('buildProgramPrompt', () => {
 
     expect(prompt).toContain('Schema:')
     expect(prompt).toContain(programJsonTemplate)
-    expect(prompt).toContain('"schemaVersion": "1.0"')
+    expect(prompt).toContain('"schemaVersion": "1.1"')
   })
 
   it('includes all rule bullets', () => {
@@ -46,8 +46,7 @@ describe('buildProgramPrompt', () => {
 
     expect(prompt).toContain('Output only valid JSON.')
     expect(prompt).toContain('Do not include markdown.')
-    expect(prompt).toContain('Include minimum versions for all workouts.')
-    expect(prompt).toContain('Make the first phase extremely easy to support habit formation.')
+    expect(prompt).toContain('Schedule workouts by weekday.')
   })
 
   it('trims whitespace from user inputs', () => {

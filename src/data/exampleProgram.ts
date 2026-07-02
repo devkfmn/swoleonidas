@@ -18,7 +18,7 @@ void upperLowerDays
 void shreddedDays
 
 export const exampleProgram: Program = {
-  schemaVersion: '1.0',
+  schemaVersion: '1.1',
   programId: 'swoleonidas-greek-god-v1',
   programName: 'Swoleonidas Greek God Program',
   description:
@@ -54,7 +54,6 @@ export const exampleProgram: Program = {
       items: [
         { id: 'mh_push', exerciseId: 'push_up', sets: 1, target: 10, unit: 'reps', progression: { type: 'linear_daily', increaseBy: 1, cap: 30 } },
       ],
-      minimumVersion: [{ exerciseId: 'push_up', sets: 1, target: 1, unit: 'reps' }],
     },
     {
       id: 'base_building_day',
@@ -66,12 +65,6 @@ export const exampleProgram: Program = {
         { id: 'bb_squat', exerciseId: 'squat', sets: 2, target: 15, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 3, cap: 30 } },
         { id: 'bb_plank', exerciseId: 'plank', sets: 2, target: 30, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 60 } },
         { id: 'bb_bridge', exerciseId: 'glute_bridge', sets: 2, target: 12, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 20 } },
-      ],
-      minimumVersion: [
-        { exerciseId: 'push_up', sets: 1, target: 3, unit: 'reps' },
-        { exerciseId: 'squat', sets: 1, target: 5, unit: 'reps' },
-        { exerciseId: 'plank', sets: 1, target: 15, unit: 'seconds' },
-        { exerciseId: 'glute_bridge', sets: 1, target: 5, unit: 'reps' },
       ],
     },
     {
@@ -86,13 +79,6 @@ export const exampleProgram: Program = {
         { id: 'up_pull', exerciseId: 'band_pull_apart', sets: 3, target: 15, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 25 } },
         { id: 'up_plank', exerciseId: 'plank', sets: 3, target: 45, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 90 } },
       ],
-      minimumVersion: [
-        { exerciseId: 'push_up', sets: 1, target: 5, unit: 'reps' },
-        { exerciseId: 'pike_push_up', sets: 1, target: 3, unit: 'reps' },
-        { exerciseId: 'band_row', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'band_pull_apart', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'plank', sets: 1, target: 20, unit: 'seconds' },
-      ],
     },
     {
       id: 'lower_day',
@@ -104,12 +90,6 @@ export const exampleProgram: Program = {
         { id: 'lo_lunge', exerciseId: 'lunge', sets: 3, target: 12, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 24 } },
         { id: 'lo_bridge', exerciseId: 'glute_bridge', sets: 3, target: 15, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 25 } },
         { id: 'lo_hollow', exerciseId: 'hollow_hold', sets: 3, target: 30, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 60 } },
-      ],
-      minimumVersion: [
-        { exerciseId: 'squat', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'lunge', sets: 1, target: 6, unit: 'reps' },
-        { exerciseId: 'glute_bridge', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'hollow_hold', sets: 1, target: 15, unit: 'seconds' },
       ],
     },
     {
@@ -124,13 +104,6 @@ export const exampleProgram: Program = {
         { id: 'sh_pull', exerciseId: 'band_pull_apart', sets: 3, target: 20, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 30 } },
         { id: 'sh_plate', exerciseId: 'plate_hold', sets: 3, target: 45, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 90 } },
       ],
-      minimumVersion: [
-        { exerciseId: 'push_up', sets: 1, target: 6, unit: 'reps' },
-        { exerciseId: 'pike_push_up', sets: 1, target: 4, unit: 'reps' },
-        { exerciseId: 'band_row', sets: 1, target: 10, unit: 'reps' },
-        { exerciseId: 'band_pull_apart', sets: 1, target: 10, unit: 'reps' },
-        { exerciseId: 'plate_hold', sets: 1, target: 20, unit: 'seconds' },
-      ],
     },
     {
       id: 'shredded_lower',
@@ -143,12 +116,6 @@ export const exampleProgram: Program = {
         { id: 'sh_gb', exerciseId: 'glute_bridge', sets: 4, target: 20, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 30 } },
         { id: 'sh_ho', exerciseId: 'hollow_hold', sets: 4, target: 40, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 75 } },
       ],
-      minimumVersion: [
-        { exerciseId: 'squat', sets: 1, target: 10, unit: 'reps' },
-        { exerciseId: 'lunge', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'glute_bridge', sets: 1, target: 10, unit: 'reps' },
-        { exerciseId: 'hollow_hold', sets: 1, target: 20, unit: 'seconds' },
-      ],
     },
     {
       id: 'shredded_conditioning',
@@ -160,12 +127,6 @@ export const exampleProgram: Program = {
         { id: 'sc_squat', exerciseId: 'squat', sets: 3, target: 20, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 35 } },
         { id: 'sc_plank', exerciseId: 'plank', sets: 3, target: 50, unit: 'seconds', progression: { type: 'linear_weekly', increaseBy: 5, cap: 90 } },
         { id: 'sc_pull', exerciseId: 'band_pull_apart', sets: 3, target: 20, unit: 'reps', progression: { type: 'linear_weekly', increaseBy: 2, cap: 30 } },
-      ],
-      minimumVersion: [
-        { exerciseId: 'push_up', sets: 1, target: 5, unit: 'reps' },
-        { exerciseId: 'squat', sets: 1, target: 8, unit: 'reps' },
-        { exerciseId: 'plank', sets: 1, target: 25, unit: 'seconds' },
-        { exerciseId: 'band_pull_apart', sets: 1, target: 10, unit: 'reps' },
       ],
     },
   ],
@@ -214,7 +175,7 @@ export const exampleProgram: Program = {
 
 export const programJsonTemplate = JSON.stringify(
   {
-    schemaVersion: '1.0',
+    schemaVersion: '1.1',
     programId: 'your-program-id',
     programName: 'Your Program Name',
     description: 'Program description.',
@@ -254,9 +215,6 @@ export const programJsonTemplate = JSON.stringify(
             progression: { type: 'linear_weekly', increaseBy: 1, cap: 20 },
           },
         ],
-        minimumVersion: [
-          { exerciseId: 'exercise_id', sets: 1, target: 1, unit: 'reps' },
-        ],
       },
     ],
     phases: [
@@ -289,7 +247,6 @@ Rules:
 * All phase workoutId values must match a workout id from the workouts array.
 * Use clear phase names.
 * Use realistic progressions.
-* Include minimum versions for all workouts.
 * Schedule workouts by weekday.
 * Keep the program beginner-friendly at the start.
 * Make the first phase extremely easy to support habit formation.`

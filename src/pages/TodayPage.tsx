@@ -1,67 +1,94 @@
-import { useMemo, useState } from 'react'
-import { format } from 'date-fns'
-import { useNavigate } from 'react-router-dom'
-import { ExerciseChecklistItem } from '../components/domain/ExerciseChecklistItem'
+import { useMemo } from 'react'
+import {
+  addDays,
+  format,
+  isAfter,
+  isBefore,
+  isSameDay,
+  isValid,
+  parseISO,
+  startOfDay,
+} from 'date-fns'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { WeekPreview } from '../components/domain/WeekPreview'
+import { WorkoutDayView } from '../components/domain/WorkoutDayView'
 import { EmptyState } from '../components/ui/EmptyState'
 import { GreekCard } from '../components/ui/GreekCard'
 import { LaurelWreath, PageHeader } from '../components/ui/Icons'
-import { ProgressRing } from '../components/ui/ProgressRing'
 import { StoneButton } from '../components/ui/StoneButton'
 import { useActiveProgram } from '../hooks/useActiveProgram'
-import { useCompletionLog } from '../hooks/useCompletionLog'
-import { getCompletionPercentage } from '../lib/schedule/getDayStatus'
+import { useWeekStatus } from '../hooks/useWeekStatus'
+import { getCurrentPhaseForDate } from '../lib/schedule/getCurrentPhase'
+import { getCurrentWeek } from '../lib/schedule/getCurrentWeek'
+import { getProgramEndDate } from '../lib/schedule/getTimelineProgress'
 import { getWorkoutForDate } from '../lib/schedule/getWorkoutForDate'
+
+function parseViewDate(param: string | null, fallback: Date): Date {
+  if (!param) return fallback
+  const parsed = parseISO(param)
+  return isValid(parsed) ? parsed : fallback
+}
+
+function clampToProgramRange(date: Date, startDate: string, endDate: Date): Date {
+  const start = startOfDay(parseISO(startDate))
+  const end = startOfDay(endDate)
+  if (isBefore(date, start)) return start
+  if (isAfter(date, end)) return end
+  return date
+}
 
 export function TodayPage() {
   const navigate = useNavigate()
-  const { activeProgram, currentPhase, currentWeek, loading } = useActiveProgram()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { activeProgram, loading } = useActiveProgram()
   const today = new Date()
-  const dateStr = format(today, 'yyyy-MM-dd')
+
+  const program = activeProgram?.program ?? null
+  const programEnd = program ? getProgramEndDate(program) : null
+
+  const viewDate = useMemo(() => {
+    if (!program || !programEnd) return today
+    const parsed = parseViewDate(searchParams.get('date'), today)
+    return clampToProgramRange(startOfDay(parsed), program.startDate, programEnd)
+  }, [program, programEnd, searchParams, today])
+
+  const dateStr = format(viewDate, 'yyyy-MM-dd')
+  const isToday = isSameDay(viewDate, today)
 
   const scheduled = useMemo(() => {
-    if (!activeProgram) return null
-    return getWorkoutForDate(activeProgram.program, today)
-  }, [activeProgram, today])
+    if (!program) return null
+    return getWorkoutForDate(program, viewDate)
+  }, [program, viewDate])
 
+  const currentWeek = program ? getCurrentWeek(program, viewDate) : null
+  const currentPhase = program ? getCurrentPhaseForDate(program, viewDate) : null
   const workout = scheduled?.workout ?? null
-  const programId = activeProgram?.program.programId ?? null
 
-  const {
-    log,
-    toggleExercise,
-    setMinimumVersion,
-    setNote,
-    markAllComplete,
-    resetDay,
-  } = useCompletionLog(dateStr, programId, workout)
+  const { logMap } = useWeekStatus(program, viewDate)
 
-  const [noteDraft, setNoteDraft] = useState('')
-  const [useMinimum, setUseMinimum] = useState(false)
+  const canGoPrev = program
+    ? !isSameDay(viewDate, startOfDay(parseISO(program.startDate)))
+    : false
+  const canGoNext = program && programEnd
+    ? !isSameDay(viewDate, startOfDay(programEnd))
+    : false
 
-  const displayItems = useMemo((): import('../components/domain/ExerciseChecklistItem').DisplayItem[] => {
-    if (!workout) return []
-    if (useMinimum || log?.usedMinimumVersion) {
-      const exerciseMap = new Map(
-        activeProgram?.program.exercises.map((e) => [e.id, e.name]) ?? [],
-      )
-      return workout.minimumVersion.map((item) => ({
-        ...item,
-        id: item.exerciseId,
-        exerciseName: exerciseMap.get(item.exerciseId) ?? item.exerciseId,
-      }))
+  const setViewDate = (next: Date) => {
+    const nextStr = format(next, 'yyyy-MM-dd')
+    if (isSameDay(next, today)) {
+      setSearchParams({})
+    } else {
+      setSearchParams({ date: nextStr })
     }
-    return workout.items
-  }, [workout, useMinimum, log, activeProgram])
+  }
 
-  const percentage = activeProgram && workout
-    ? getCompletionPercentage(activeProgram.program, today, log)
-    : 0
+  const pageTitle = isToday ? 'Today' : format(viewDate, 'EEEE, MMMM d')
 
   if (loading) {
     return <p className="text-ink-muted">Loading...</p>
   }
 
-  if (!activeProgram) {
+  if (!activeProgram || !program) {
     return (
       <>
         <PageHeader title="Today" subtitle={format(today, 'EEEE, MMMM d, yyyy')} />
@@ -75,13 +102,49 @@ export function TodayPage() {
     )
   }
 
-  if (scheduled?.isRestDay || !workout) {
-    return (
-      <>
-        <PageHeader
-          title="Today"
-          subtitle={`${activeProgram.program.programName} · Week ${currentWeek}`}
-        />
+  return (
+    <>
+      <PageHeader
+        title={pageTitle}
+        subtitle={`${format(viewDate, 'EEEE, MMMM d, yyyy')} · ${program.programName}`}
+      />
+
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <StoneButton
+          variant="secondary"
+          disabled={!canGoPrev}
+          onClick={() => setViewDate(addDays(viewDate, -1))}
+        >
+          ← Previous
+        </StoneButton>
+        {!isToday && (
+          <StoneButton variant="ghost" onClick={() => setSearchParams({})}>
+            Jump to today
+          </StoneButton>
+        )}
+        <StoneButton
+          variant="secondary"
+          disabled={!canGoNext}
+          onClick={() => setViewDate(addDays(viewDate, 1))}
+        >
+          Next →
+        </StoneButton>
+      </div>
+
+      <WeekPreview
+        program={program}
+        selectedDate={viewDate}
+        logMap={logMap}
+        onSelectDate={(d) => {
+          if (d === format(today, 'yyyy-MM-dd')) {
+            setSearchParams({})
+          } else {
+            setSearchParams({ date: d })
+          }
+        }}
+      />
+
+      {scheduled?.isRestDay || !workout ? (
         <GreekCard className="text-center">
           <div className="mx-auto mb-4 flex justify-center text-bronze">
             <LaurelWreath className="h-16 w-16" />
@@ -92,84 +155,16 @@ export function TodayPage() {
             <p className="mt-4 text-sm text-ink-muted">Phase: {currentPhase.name}</p>
           )}
         </GreekCard>
-      </>
-    )
-  }
-
-  return (
-    <>
-      <PageHeader
-        title="Today"
-        subtitle={`${format(today, 'EEEE, MMMM d')} · ${activeProgram.program.programName}`}
-      />
-
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <ProgressRing percentage={percentage} />
-        <div>
-          <p className="text-sm text-ink-muted">
-            Week {currentWeek}
-            {currentPhase ? ` · ${currentPhase.name}` : ''}
-          </p>
-          <h2 className="font-display text-xl font-semibold text-ink">{workout.name}</h2>
-          {workout.estimatedMinutes && (
-            <p className="text-sm text-ink-muted">~{workout.estimatedMinutes} min</p>
-          )}
-        </div>
-      </div>
-
-      <GreekCard title="Exercises" className="mb-6">
-        <div className="space-y-3">
-          {displayItems.map((item) => {
-            const logItem = log?.items.find((i) => i.exerciseId === item.exerciseId)
-            return (
-              <ExerciseChecklistItem
-                key={item.exerciseId}
-                item={item}
-                completed={logItem?.completed ?? false}
-                actual={logItem?.actual}
-                onToggle={(completed) =>
-                  toggleExercise(item.exerciseId, completed, logItem?.actual ?? item.target)
-                }
-                onActualChange={(actual) =>
-                  toggleExercise(item.exerciseId, true, actual)
-                }
-              />
-            )
-          })}
-        </div>
-      </GreekCard>
-
-      <GreekCard title="Note" className="mb-6">
-        <textarea
-          value={noteDraft || log?.note || ''}
-          onChange={(e) => setNoteDraft(e.target.value)}
-          onBlur={() => setNote(noteDraft || log?.note || '')}
-          rows={3}
-          className="w-full rounded-lg border border-stone-border bg-stone-surface p-3 text-sm"
-          placeholder="How did it go?"
+      ) : (
+        <WorkoutDayView
+          program={program}
+          date={viewDate}
+          dateStr={dateStr}
+          workout={workout}
+          currentWeek={currentWeek ?? 1}
+          currentPhase={currentPhase}
         />
-      </GreekCard>
-
-      <div className="flex flex-wrap gap-2">
-        <StoneButton onClick={markAllComplete}>Mark all complete</StoneButton>
-        <StoneButton
-          variant="secondary"
-          onClick={() => {
-            const next = !useMinimum
-            setUseMinimum(next)
-            setMinimumVersion(next)
-          }}
-        >
-          {useMinimum || log?.usedMinimumVersion ? 'Using minimum' : 'Use minimum version'}
-        </StoneButton>
-        <StoneButton variant="ghost" onClick={async () => {
-          await resetDay()
-          setUseMinimum(false)
-          setNoteDraft('')
-        }}>
-          Reset today
-        </StoneButton>
-      </div>
+      )}
     </>
   )
 }

@@ -5,8 +5,11 @@ import {
   activateProgram as activateProgramDb,
   deactivateProgram as deactivateProgramDb,
   deleteProgram as deleteProgramDb,
+  duplicateProgram as duplicateProgramDb,
   importProgram as importProgramDb,
   subscribePrograms,
+  updateProgramStartDate as updateProgramStartDateDb,
+  upsertProgram as upsertProgramDb,
 } from '../lib/firebase/firestore'
 import { useAuth } from './useAuth'
 
@@ -40,6 +43,47 @@ export function usePrograms() {
     [user],
   )
 
+  const upsertProgram = useCallback(
+    async (program: Program) => {
+      if (!user) {
+        throw new Error('You must be signed in to import a program.')
+      }
+      return upsertProgramDb(user.uid, program)
+    },
+    [user],
+  )
+
+  const updateStartDate = useCallback(
+    async (programId: string, startDate: string) => {
+      if (!user) {
+        throw new Error('You must be signed in to update a program.')
+      }
+      await updateProgramStartDateDb(user.uid, programId, startDate)
+    },
+    [user],
+  )
+
+  const duplicateProgram = useCallback(
+    async (
+      sourceProgramId: string,
+      newProgramId: string,
+      newStartDate: string,
+      newProgramName?: string,
+    ) => {
+      if (!user) {
+        throw new Error('You must be signed in to duplicate a program.')
+      }
+      return duplicateProgramDb(
+        user.uid,
+        sourceProgramId,
+        newProgramId,
+        newStartDate,
+        newProgramName,
+      )
+    },
+    [user],
+  )
+
   const activateProgram = useCallback(
     async (programId: string) => {
       if (!user) {
@@ -67,12 +111,21 @@ export function usePrograms() {
     [user],
   )
 
+  const hasProgram = useCallback(
+    (programId: string) => programs.some((p) => p.program.programId === programId),
+    [programs],
+  )
+
   return {
     programs,
     loading,
     importProgram,
+    upsertProgram,
+    updateStartDate,
+    duplicateProgram,
     activateProgram,
     deactivateProgram,
     deleteProgram,
+    hasProgram,
   }
 }
