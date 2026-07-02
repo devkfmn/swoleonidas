@@ -3,6 +3,7 @@ import { SpartanHelmet } from '../ui/Icons'
 
 const navItems = [
   { to: '/today', label: 'Today' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/programs', label: 'Programs' },
   { to: '/import', label: 'Import' },

@@ -10,6 +10,7 @@ import { ProgramsPage } from './pages/ProgramsPage'
 import { ProgramDetailPage } from './pages/ProgramDetailPage'
 import { ImportPage } from './pages/ImportPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { DashboardPage } from './pages/DashboardPage'
 
 export default function App() {
   if (!isFirebaseConfigured()) {
@@ -25,6 +26,7 @@ export default function App() {
           </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="/today" element={<TodayPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/programs" element={<ProgramsPage />} />
             <Route path="/programs/:programId" element={<ProgramDetailPage />} />
