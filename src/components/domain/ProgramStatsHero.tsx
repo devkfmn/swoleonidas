@@ -20,23 +20,35 @@ export function ProgramStatsHero({ program, stats }: ProgramStatsHeroProps) {
             {stats.currentPhase ? ` · ${stats.currentPhase.name}` : ''}
           </p>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="text-center">
-            <ProgressRing percentage={stats.adherencePercent} size={88} />
-            <p className="mt-1 text-xs text-ink-muted">Adherence</p>
-          </div>
-          <div className="text-center">
-            <ProgressRing percentage={stats.timelinePercent} size={88} strokeWidth={6} />
-            <p className="mt-1 text-xs text-ink-muted">Timeline</p>
-          </div>
+        <div className="text-center">
+          <ProgressRing percentage={stats.adherencePercent} size={88} />
+          <p className="mt-1 text-xs text-ink-muted">Adherence</p>
         </div>
       </div>
-      <div className="mt-4">
-        <div className="mb-1 flex justify-between text-xs text-ink-muted">
-          <span>Program timeline</span>
-          <span>{stats.timelinePercent}%</span>
+      <div className="mt-4 space-y-3">
+        <div>
+          <div className="mb-1 flex justify-between text-xs text-ink-muted">
+            <span>Program timeline</span>
+            <span>
+              Day {stats.timelineDay} of {stats.timelineTotalDays} · {stats.timelinePercent}%
+            </span>
+          </div>
+          <ProgressBar percentage={stats.timelinePercent} />
         </div>
-        <ProgressBar percentage={stats.timelinePercent} />
+        {stats.currentPhase &&
+          stats.phasePercent !== null &&
+          stats.phaseDay !== null &&
+          stats.phaseTotalDays !== null && (
+            <div>
+              <div className="mb-1 flex justify-between text-xs text-ink-muted">
+                <span>{stats.currentPhase.name}</span>
+                <span>
+                  Day {stats.phaseDay} of {stats.phaseTotalDays} · {stats.phasePercent}%
+                </span>
+              </div>
+              <ProgressBar percentage={stats.phasePercent} />
+            </div>
+          )}
       </div>
     </GreekCard>
   )

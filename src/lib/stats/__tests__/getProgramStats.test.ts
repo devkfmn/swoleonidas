@@ -167,10 +167,51 @@ describe('getProgramStats', () => {
     expect(week1!.scheduled).toBe(2)
   })
 
-  it('computes timeline percent from current week', () => {
+  it('computes timeline percent from elapsed program days', () => {
     const stats = getProgramStats(program, [], today)
     expect(stats.currentWeek).toBe(2)
-    expect(stats.timelinePercent).toBe(50)
+    expect(stats.timelineDay).toBe(10)
+    expect(stats.timelineTotalDays).toBe(28)
+    expect(stats.timelinePercent).toBe(36)
+  })
+
+  it('computes phase progress for single-phase program', () => {
+    const stats = getProgramStats(program, [], today)
+    expect(stats.phaseDay).toBe(10)
+    expect(stats.phaseTotalDays).toBe(28)
+    expect(stats.phasePercent).toBe(36)
+    expect(stats.phasePercent).toBe(stats.timelinePercent)
+    expect(stats.phaseDay).toBe(stats.timelineDay)
+  })
+
+  it('computes phase progress for multi-phase program', () => {
+    const multiPhaseProgram: Program = {
+      ...program,
+      durationWeeks: 8,
+      phases: [
+        {
+          id: 'p1',
+          name: 'Foundation',
+          startWeek: 1,
+          endWeek: 4,
+          schedule: program.phases[0].schedule,
+        },
+        {
+          id: 'p2',
+          name: 'Strength',
+          startWeek: 5,
+          endWeek: 8,
+          schedule: program.phases[0].schedule,
+        },
+      ],
+    }
+    const week6 = parseISO('2026-08-07')
+    const stats = getProgramStats(multiPhaseProgram, [], week6)
+    expect(stats.currentWeek).toBe(6)
+    expect(stats.currentPhase?.name).toBe('Strength')
+    expect(stats.phaseDay).toBe(10)
+    expect(stats.phaseTotalDays).toBe(28)
+    expect(stats.phasePercent).toBe(36)
   })
 
   it('counts minimum version days', () => {

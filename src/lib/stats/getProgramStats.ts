@@ -1,5 +1,4 @@
 import {
-  addWeeks,
   eachDayOfInterval,
   format,
   min,
@@ -11,6 +10,11 @@ import type { CompletionLog } from '../../types/program'
 import type { Phase, Program } from '../validation/programSchema'
 import { getCurrentPhaseForDate } from '../schedule/getCurrentPhase'
 import { getCurrentWeek } from '../schedule/getCurrentWeek'
+import {
+  getPhaseTimelineProgress,
+  getProgramEndDate,
+  getProgramTimelineProgress,
+} from '../schedule/getTimelineProgress'
 import { getDayStatus } from '../schedule/getDayStatus'
 import { getWorkoutForDate } from '../schedule/getWorkoutForDate'
 
@@ -24,6 +28,11 @@ export interface WeeklyAdherenceRow {
 
 export interface ProgramStats {
   timelinePercent: number
+  timelineDay: number
+  timelineTotalDays: number
+  phasePercent: number | null
+  phaseDay: number | null
+  phaseTotalDays: number | null
   adherencePercent: number
   currentWeek: number
   currentPhase: Phase | null
@@ -39,11 +48,6 @@ export interface ProgramStats {
 }
 
 const WEEKLY_ADHERENCE_LIMIT = 8
-
-function getProgramEndDate(program: Program): Date {
-  const start = parseISO(program.startDate)
-  return subDays(addWeeks(start, program.durationWeeks), 1)
-}
 
 function isWorkoutDay(program: Program, date: Date): boolean {
   const scheduled = getWorkoutForDate(program, date)
@@ -121,7 +125,8 @@ export function getProgramStats(
   const end = min([startOfDay(today), startOfDay(getProgramEndDate(program))])
   const currentWeek = getCurrentWeek(program, today)
   const currentPhase = getCurrentPhaseForDate(program, today)
-  const timelinePercent = Math.round((currentWeek / program.durationWeeks) * 100)
+  const programTimeline = getProgramTimelineProgress(program, today)
+  const phaseTimeline = getPhaseTimelineProgress(program, currentPhase, today)
 
   const totals = {
     complete: 0,
@@ -186,7 +191,12 @@ export function getProgramStats(
   const streak = computeStreak(program, logMap, today)
 
   return {
-    timelinePercent,
+    timelinePercent: programTimeline.percent,
+    timelineDay: programTimeline.currentDay,
+    timelineTotalDays: programTimeline.totalDays,
+    phasePercent: phaseTimeline?.percent ?? null,
+    phaseDay: phaseTimeline?.currentDay ?? null,
+    phaseTotalDays: phaseTimeline?.totalDays ?? null,
     adherencePercent,
     currentWeek,
     currentPhase,
