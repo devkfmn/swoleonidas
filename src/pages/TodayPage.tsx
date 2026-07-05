@@ -98,7 +98,7 @@ export function TodayPage() {
           title="No active program"
           description="Create a training program and activate it to see today's workout."
           actionLabel="Create your first program"
-          onAction={() => navigate('/create-program')}
+          onAction={() => navigate('/programs', { state: { showCreate: true } })}
         />
       </>
     )

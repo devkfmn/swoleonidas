@@ -5,7 +5,6 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '🏛' },
   { to: '/calendar', label: 'Calendar', icon: '📅' },
   { to: '/programs', label: 'Programs', icon: '📜' },
-  { to: '/create-program', label: 'Create Program', icon: '✨' },
   { to: '/settings', label: 'Settings', icon: '⚙' },
 ]
 

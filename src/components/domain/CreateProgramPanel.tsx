@@ -16,7 +16,7 @@ interface CreateProgramPanelProps {
   hasProgram: (programId: string) => boolean
   lastImported: Program | null
   onActivateAndStart: () => void
-  onViewPrograms: () => void
+  onDone: () => void
 }
 
 const inputClassName =
@@ -29,7 +29,7 @@ export function CreateProgramPanel({
   hasProgram,
   lastImported,
   onActivateAndStart,
-  onViewPrograms,
+  onDone,
 }: CreateProgramPanelProps) {
   const [goal, setGoal] = useState('')
   const [equipment, setEquipment] = useState('')
@@ -325,8 +325,8 @@ export function CreateProgramPanel({
             <StoneButton onClick={onActivateAndStart} disabled={importing}>
               Activate and start
             </StoneButton>
-            <StoneButton variant="secondary" onClick={onViewPrograms}>
-              View programs
+            <StoneButton variant="secondary" onClick={onDone}>
+              Done
             </StoneButton>
           </div>
         </GreekCard>

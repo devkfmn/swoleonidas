@@ -123,7 +123,7 @@ export function ProgramDetailPage() {
             <StoneButton variant="secondary" onClick={openDuplicateDialog}>
               Duplicate program
             </StoneButton>
-            <Link to="/create-program" state={{ updateProgramId: program.programId }}>
+            <Link to="/programs" state={{ showCreate: true, updateProgramId: program.programId }}>
               <StoneButton variant="secondary">Update program</StoneButton>
             </Link>
           </div>
