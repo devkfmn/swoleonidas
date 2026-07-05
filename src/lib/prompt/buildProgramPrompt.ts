@@ -4,6 +4,8 @@ export interface ProgramPromptInput {
   goal: string
   equipment: string
   duration: string
+  preferredExercises: string[]
+  restDays: string[]
 }
 
 function hasValue(value: string): boolean {
@@ -14,6 +16,11 @@ export function canBuildProgramPrompt(input: ProgramPromptInput): boolean {
   return hasValue(input.goal) && hasValue(input.equipment) && hasValue(input.duration)
 }
 
+function formatListSection(title: string, items: string[]): string {
+  if (items.length === 0) return ''
+  return `\n${title}:\n${items.map((item) => `- ${item}`).join('\n')}`
+}
+
 export function buildProgramPrompt(input: ProgramPromptInput): string {
   if (!canBuildProgramPrompt(input)) {
     return ''
@@ -22,6 +29,14 @@ export function buildProgramPrompt(input: ProgramPromptInput): string {
   const goal = input.goal.trim()
   const equipment = input.equipment.trim()
   const duration = input.duration.trim()
+  const exercises = input.preferredExercises.map((e) => e.trim()).filter(Boolean)
+  const restDays = input.restDays.map((d) => d.trim().toLowerCase()).filter(Boolean)
+
+  const exerciseSection = formatListSection('Preferred exercises to include', exercises)
+  const restDaySection = formatListSection(
+    'Rest days (do not schedule workouts on these days)',
+    restDays,
+  )
 
   return `${PROGRAM_PROMPT_RULES}
 
@@ -32,7 +47,7 @@ Available equipment:
 ${equipment}
 
 Duration:
-${duration}
+${duration}${exerciseSection}${restDaySection}
 
 Schema:
 ${programJsonTemplate}`

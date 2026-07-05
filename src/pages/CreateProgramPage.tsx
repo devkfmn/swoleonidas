@@ -1,21 +1,16 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ImportJsonPanel } from '../components/domain/ImportJsonPanel'
+import { CreateProgramPanel } from '../components/domain/CreateProgramPanel'
 import { PageHeader } from '../components/ui/Icons'
 import { usePrograms } from '../hooks/usePrograms'
 import { formatFirebaseError } from '../lib/firebase/utils'
 import type { Program } from '../lib/validation/programSchema'
 
-export function ImportPage() {
+export function CreateProgramPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const updateProgramId = (location.state as { updateProgramId?: string } | null)?.updateProgramId
-  const {
-    importProgram,
-    upsertProgram,
-    activateProgram,
-    hasProgram,
-  } = usePrograms()
+  const { importProgram, upsertProgram, activateProgram, hasProgram } = usePrograms()
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const [lastImported, setLastImported] = useState<Program | null>(null)
@@ -60,14 +55,14 @@ export function ImportPage() {
   return (
     <>
       <PageHeader
-        title="Import Program"
+        title="Create Program"
         subtitle={
           updateProgramId
-            ? `Updating program "${updateProgramId}". Paste JSON with the same programId to replace the plan.`
-            : 'Describe your goal, copy the generated prompt, then import the JSON your AI returns.'
+            ? `Updating program "${updateProgramId}". Paste a response with the same programId to replace the plan.`
+            : 'Describe your goal, copy the generated prompt, then paste the JSON to save.'
         }
       />
-      <ImportJsonPanel
+      <CreateProgramPanel
         onImport={handleImport}
         importing={importing}
         importError={importError}

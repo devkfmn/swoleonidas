@@ -237,16 +237,21 @@ export const programJsonTemplate = JSON.stringify(
   2,
 )
 
-export const PROGRAM_PROMPT_RULES = `Create a complete fitness program as valid JSON using the schema below.
+export const PROGRAM_PROMPT_RULES = `Create a complete fitness program using the schema below.
+
+Output format:
+1. First, write a clear Program Summary covering: program overview, phases with week ranges, weekly schedule (workout days vs rest days), key exercises, and progression approach.
+2. Then output the complete program as a JSON code block (\`\`\`json ... \`\`\`).
 
 Rules:
-* Output only valid JSON.
-* Do not include markdown.
-* Do not include explanations.
+* The JSON must be valid and conform to the schema.
 * All workout exerciseId values must match an exercise id from the exercises array.
 * All phase workoutId values must match a workout id from the workouts array.
 * Use clear phase names.
 * Use realistic progressions.
 * Schedule workouts by weekday.
+* Schedule workouts only on non-rest weekdays.
+* When rest days are specified, do not schedule workouts on those weekdays in any phase.
+* When preferred exercises are specified, include them in the exercises array and use them in workouts.
 * Keep the program beginner-friendly at the start.
 * Make the first phase extremely easy to support habit formation.`

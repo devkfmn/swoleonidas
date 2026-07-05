@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import {
   addDays,
-  format,
   isAfter,
   isBefore,
   isSameDay,
@@ -9,6 +8,7 @@ import {
   parseISO,
   startOfDay,
 } from 'date-fns'
+import { toStorageDate, formatDisplayDateLong } from '../lib/dates/format'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { WeekPreview } from '../components/domain/WeekPreview'
 import { WorkoutDayView } from '../components/domain/WorkoutDayView'
@@ -52,7 +52,7 @@ export function TodayPage() {
     return clampToProgramRange(startOfDay(parsed), program.startDate, programEnd)
   }, [program, programEnd, searchParams, today])
 
-  const dateStr = format(viewDate, 'yyyy-MM-dd')
+  const dateStr = toStorageDate(viewDate)
   const isToday = isSameDay(viewDate, today)
 
   const scheduled = useMemo(() => {
@@ -74,7 +74,7 @@ export function TodayPage() {
     : false
 
   const setViewDate = (next: Date) => {
-    const nextStr = format(next, 'yyyy-MM-dd')
+    const nextStr = toStorageDate(next)
     if (isSameDay(next, today)) {
       setSearchParams({})
     } else {
@@ -82,7 +82,7 @@ export function TodayPage() {
     }
   }
 
-  const pageTitle = isToday ? 'Today' : format(viewDate, 'EEEE, MMMM d')
+  const pageTitle = isToday ? 'Today' : formatDisplayDateLong(viewDate)
 
   if (loading) {
     return <p className="text-ink-muted">Loading...</p>
@@ -91,12 +91,12 @@ export function TodayPage() {
   if (!activeProgram || !program) {
     return (
       <>
-        <PageHeader title="Today" subtitle={format(today, 'EEEE, MMMM d, yyyy')} />
+        <PageHeader title="Today" subtitle={formatDisplayDateLong(today)} />
         <EmptyState
           title="No active program"
-          description="Import a training program and activate it to see today's workout."
-          actionLabel="Import your first program"
-          onAction={() => navigate('/import')}
+          description="Create a training program and activate it to see today's workout."
+          actionLabel="Create your first program"
+          onAction={() => navigate('/create-program')}
         />
       </>
     )
@@ -106,7 +106,7 @@ export function TodayPage() {
     <>
       <PageHeader
         title={pageTitle}
-        subtitle={`${format(viewDate, 'EEEE, MMMM d, yyyy')} · ${program.programName}`}
+        subtitle={`${formatDisplayDateLong(viewDate)} · ${program.programName}`}
       />
 
       <div className="mb-4 flex items-center justify-between gap-2">
@@ -136,7 +136,7 @@ export function TodayPage() {
         selectedDate={viewDate}
         logMap={logMap}
         onSelectDate={(d) => {
-          if (d === format(today, 'yyyy-MM-dd')) {
+          if (d === toStorageDate(today)) {
             setSearchParams({})
           } else {
             setSearchParams({ date: d })

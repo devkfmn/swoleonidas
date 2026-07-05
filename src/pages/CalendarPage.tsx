@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { format, parseISO } from 'date-fns'
+import { formatDisplayDateLong } from '../lib/dates/format'
 import { CalendarMonth, addMonths, subMonths } from '../components/domain/CalendarMonth'
 import { GreekCard } from '../components/ui/GreekCard'
 import { PageHeader } from '../components/ui/Icons'
@@ -72,7 +72,7 @@ export function CalendarPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-display text-lg font-semibold">
-                  {format(parseISO(selected.date), 'EEEE, MMM d')}
+                  {formatDisplayDateLong(selected.date)}
                 </h3>
                 <StatusBadge status={selected.status} />
               </div>

@@ -18,7 +18,7 @@ export function ProgramsPage() {
 
   return (
     <>
-      <PageHeader title="Programs" subtitle="Imported training programs" />
+      <PageHeader title="Programs" subtitle="Your training programs" />
 
       {importedName && (
         <GreekCard className="mb-4 border-status-complete/30 bg-status-complete/10">
@@ -31,9 +31,9 @@ export function ProgramsPage() {
       {programs.length === 0 ? (
         <EmptyState
           title="No programs yet"
-          description="Import a structured JSON program to get started."
-          actionLabel="Import Program"
-          onAction={() => navigate('/import')}
+          description="Create a structured program to get started."
+          actionLabel="Create Program"
+          onAction={() => navigate('/create-program')}
         />
       ) : (
         <div className="space-y-4">

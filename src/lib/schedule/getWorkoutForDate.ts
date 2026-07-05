@@ -1,26 +1,14 @@
-import { format, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
 import type { Program } from '../validation/programSchema'
+import { toStorageDate } from '../dates/format'
 import { applyProgression, getElapsedDays, getElapsedWeeks } from './applyProgression'
 import { getCurrentPhase } from './getCurrentPhase'
 import { getCurrentWeek } from './getCurrentWeek'
 import type { ResolvedWorkout, ScheduledDay } from './types'
-
-const WEEKDAYS = [
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday',
-] as const
-
-function getWeekdayName(date: Date): string {
-  return WEEKDAYS[date.getDay()]
-}
+import { getWeekdayName } from './weekdays'
 
 export function getWorkoutForDate(program: Program, date: Date): ScheduledDay {
-  const dateStr = format(date, 'yyyy-MM-dd')
+  const dateStr = toStorageDate(date)
   const week = getCurrentWeek(program, date)
   const phase = getCurrentPhase(program, week)
   const elapsedDays = getElapsedDays(program, date)
@@ -70,7 +58,7 @@ export function getWorkoutForDate(program: Program, date: Date): ScheduledDay {
 }
 
 export function formatDateString(date: Date): string {
-  return format(date, 'yyyy-MM-dd')
+  return toStorageDate(date)
 }
 
 export function parseDateString(dateStr: string): Date {

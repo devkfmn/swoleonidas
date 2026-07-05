@@ -6,6 +6,12 @@ import { PageHeader } from '../components/ui/Icons'
 import { StoneButton } from '../components/ui/StoneButton'
 import { usePrograms } from '../hooks/usePrograms'
 import { formatFirebaseError } from '../lib/firebase/utils'
+import {
+  DISPLAY_DATE_FORMAT,
+  displayDateToStorage,
+  formatDisplayDate,
+  storageDateToDisplay,
+} from '../lib/dates/format'
 
 export function ProgramDetailPage() {
   const navigate = useNavigate()
@@ -37,12 +43,14 @@ export function ProgramDetailPage() {
   }
 
   const { program } = stored
-  const effectiveStartDate = startDateDraft || program.startDate
+  const startDateInput = startDateDraft || storageDateToDisplay(program.startDate)
+  const parsedStartDateDraft = startDateDraft ? displayDateToStorage(startDateDraft) : null
+  const effectiveStartDate = parsedStartDateDraft ?? program.startDate
 
   const openDuplicateDialog = () => {
     setDuplicateId(`${program.programId}-copy`)
     setDuplicateName(`${program.programName} (Copy)`)
-    setDuplicateStartDate(program.startDate)
+    setDuplicateStartDate(storageDateToDisplay(program.startDate))
     setActionError(null)
     setDuplicateOpen(true)
   }
@@ -64,7 +72,7 @@ export function ProgramDetailPage() {
           </div>
           <div>
             <dt className="text-ink-muted">Start</dt>
-            <dd className="font-medium">{program.startDate}</dd>
+            <dd className="font-medium">{formatDisplayDate(program.startDate)}</dd>
           </div>
         </dl>
       </GreekCard>
@@ -75,19 +83,26 @@ export function ProgramDetailPage() {
             <label className="mb-1 block text-sm text-ink-muted">Change start date</label>
             <div className="flex flex-wrap gap-2">
               <input
-                type="date"
-                value={effectiveStartDate}
+                type="text"
+                inputMode="numeric"
+                value={startDateInput}
                 onChange={(e) => setStartDateDraft(e.target.value)}
+                placeholder={DISPLAY_DATE_FORMAT.toLowerCase()}
                 className="rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
               />
               <StoneButton
                 variant="secondary"
                 disabled={saving || effectiveStartDate === program.startDate}
                 onClick={async () => {
+                  const storageDate = displayDateToStorage(startDateInput)
+                  if (!storageDate) {
+                    setActionError(`Invalid date. Use ${DISPLAY_DATE_FORMAT.toLowerCase()}.`)
+                    return
+                  }
                   setSaving(true)
                   setActionError(null)
                   try {
-                    await updateStartDate(program.programId, effectiveStartDate)
+                    await updateStartDate(program.programId, storageDate)
                     setStartDateDraft('')
                   } catch (error) {
                     setActionError(formatFirebaseError(error))
@@ -108,8 +123,8 @@ export function ProgramDetailPage() {
             <StoneButton variant="secondary" onClick={openDuplicateDialog}>
               Duplicate program
             </StoneButton>
-            <Link to="/import" state={{ updateProgramId: program.programId }}>
-              <StoneButton variant="secondary">Update from JSON</StoneButton>
+            <Link to="/create-program" state={{ updateProgramId: program.programId }}>
+              <StoneButton variant="secondary">Update program</StoneButton>
             </Link>
           </div>
 
@@ -184,13 +199,18 @@ export function ProgramDetailPage() {
         confirmLabel="Duplicate"
         onCancel={() => setDuplicateOpen(false)}
         onConfirm={async () => {
+          const storageDate = displayDateToStorage(duplicateStartDate)
+          if (!storageDate) {
+            setActionError(`Invalid date. Use ${DISPLAY_DATE_FORMAT.toLowerCase()}.`)
+            return
+          }
           setSaving(true)
           setActionError(null)
           try {
             const duplicated = await duplicateProgram(
               program.programId,
               duplicateId.trim(),
-              duplicateStartDate,
+              storageDate,
               duplicateName.trim() || undefined,
             )
             setDuplicateOpen(false)
@@ -224,9 +244,11 @@ export function ProgramDetailPage() {
           <label className="block">
             <span className="mb-1 block text-sm text-ink-muted">Start date</span>
             <input
-              type="date"
+              type="text"
+              inputMode="numeric"
               value={duplicateStartDate}
               onChange={(e) => setDuplicateStartDate(e.target.value)}
+              placeholder={DISPLAY_DATE_FORMAT.toLowerCase()}
               className="w-full rounded-lg border border-stone-border bg-stone-surface px-3 py-2 text-sm"
             />
           </label>

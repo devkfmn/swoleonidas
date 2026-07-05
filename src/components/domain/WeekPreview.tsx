@@ -9,6 +9,7 @@ import type { CompletionLog } from '../../types/program'
 import type { Program } from '../../lib/validation/programSchema'
 import { getDayStatus } from '../../lib/schedule/getDayStatus'
 import { getWorkoutForDate } from '../../lib/schedule/getWorkoutForDate'
+import { toStorageDate } from '../../lib/dates/format'
 import { DayStatusDot } from './DayStatusDot'
 import { GreekCard } from '../ui/GreekCard'
 
@@ -34,7 +35,7 @@ export function WeekPreview({
     <GreekCard title="This week" className="mb-6">
       <div className="grid grid-cols-7 gap-1">
         {days.map((date) => {
-          const dateStr = format(date, 'yyyy-MM-dd')
+          const dateStr = toStorageDate(date)
           const scheduled = getWorkoutForDate(program, date)
           const log = logMap.get(dateStr) ?? null
           const status = getDayStatus(program, date, log, today)

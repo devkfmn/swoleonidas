@@ -3,6 +3,7 @@ import type { StoredProgram } from '../../types/program'
 import { GreekCard } from '../ui/GreekCard'
 import { StatusBadge } from '../ui/StatusBadge'
 import { StoneButton } from '../ui/StoneButton'
+import { formatDisplayDate } from '../../lib/dates/format'
 import { getCurrentWeek } from '../../lib/schedule/getCurrentWeek'
 import { getCurrentPhaseForDate } from '../../lib/schedule/getCurrentPhase'
 
@@ -45,7 +46,7 @@ export function ProgramCard({
         </div>
         <div>
           <dt className="text-ink-muted">Start</dt>
-          <dd className="font-medium">{program.startDate}</dd>
+          <dd className="font-medium">{formatDisplayDate(program.startDate)}</dd>
         </div>
         {isActive && week && (
           <div>
