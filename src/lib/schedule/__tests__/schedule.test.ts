@@ -69,10 +69,20 @@ describe('schedule engine', () => {
     expect(thu.workout?.items[0].target).toBe(11)
   })
 
+  it('returns rest for dates before program start and after program end', () => {
+    const beforeStart = getWorkoutForDate(program, parseISO('2026-06-30'))
+    expect(beforeStart.isRestDay).toBe(true)
+    expect(beforeStart.workout).toBeNull()
+
+    const afterEnd = getWorkoutForDate(program, parseISO('2026-07-29'))
+    expect(afterEnd.isRestDay).toBe(true)
+    expect(afterEnd.workout).toBeNull()
+  })
+
   it('determines day status correctly', () => {
     const date = parseISO('2026-06-30')
     const today = parseISO('2026-07-05')
-    expect(getDayStatus(program, date, null, today)).toBe('missed')
+    expect(getDayStatus(program, date, null, today)).toBe('rest')
 
     const future = parseISO('2026-07-10')
     expect(getDayStatus(program, future, null, today)).toBe('future')

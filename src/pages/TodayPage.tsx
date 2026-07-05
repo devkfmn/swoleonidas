@@ -8,7 +8,7 @@ import {
   parseISO,
   startOfDay,
 } from 'date-fns'
-import { toStorageDate, formatDisplayDateLong } from '../lib/dates/format'
+import { toStorageDate, formatDisplayDate, formatDisplayDateLong } from '../lib/dates/format'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { WeekPreview } from '../components/domain/WeekPreview'
 import { WorkoutDayView } from '../components/domain/WorkoutDayView'
@@ -29,14 +29,6 @@ function parseViewDate(param: string | null, fallback: Date): Date {
   return isValid(parsed) ? parsed : fallback
 }
 
-function clampToProgramRange(date: Date, startDate: string, endDate: Date): Date {
-  const start = startOfDay(parseISO(startDate))
-  const end = startOfDay(endDate)
-  if (isBefore(date, start)) return start
-  if (isAfter(date, end)) return end
-  return date
-}
-
 export function TodayPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -47,9 +39,13 @@ export function TodayPage() {
   const programEnd = program ? getProgramEndDate(program) : null
 
   const viewDate = useMemo(() => {
-    if (!program || !programEnd) return today
+    if (!program) return today
     const parsed = parseViewDate(searchParams.get('date'), today)
-    return clampToProgramRange(startOfDay(parsed), program.startDate, programEnd)
+    const day = startOfDay(parsed)
+    if (programEnd && isAfter(day, startOfDay(programEnd))) {
+      return startOfDay(programEnd)
+    }
+    return day
   }, [program, programEnd, searchParams, today])
 
   const dateStr = toStorageDate(viewDate)
@@ -66,9 +62,15 @@ export function TodayPage() {
 
   const { logMap } = useWeekStatus(program, viewDate)
 
-  const canGoPrev = program
-    ? !isSameDay(viewDate, startOfDay(parseISO(program.startDate)))
+  const isBeforeProgramStart = program
+    ? isBefore(startOfDay(viewDate), startOfDay(parseISO(program.startDate)))
     : false
+  const isAfterProgramEnd = program && programEnd
+    ? isAfter(startOfDay(viewDate), startOfDay(programEnd))
+    : false
+
+  const selectedDayLabel = isToday ? 'today' : formatDisplayDateLong(viewDate)
+
   const canGoNext = program && programEnd
     ? !isSameDay(viewDate, startOfDay(programEnd))
     : false
@@ -112,7 +114,6 @@ export function TodayPage() {
       <div className="mb-4 flex items-center justify-between gap-2">
         <StoneButton
           variant="secondary"
-          disabled={!canGoPrev}
           onClick={() => setViewDate(addDays(viewDate, -1))}
         >
           ← Previous
@@ -149,10 +150,30 @@ export function TodayPage() {
           <div className="mx-auto mb-4 flex justify-center text-bronze">
             <LaurelWreath className="h-16 w-16" />
           </div>
-          <h2 className="font-display text-xl font-semibold">Rest day.</h2>
-          <p className="mt-2 text-ink-muted">Even Spartans recover.</p>
-          {currentPhase && (
-            <p className="mt-4 text-sm text-ink-muted">Phase: {currentPhase.name}</p>
+          {isBeforeProgramStart ? (
+            <>
+              <h2 className="font-display text-xl font-semibold">No workout scheduled.</h2>
+              <p className="mt-2 text-ink-muted">
+                Nothing planned for {selectedDayLabel}. Your program starts on{' '}
+                {formatDisplayDate(program.startDate)}.
+              </p>
+            </>
+          ) : isAfterProgramEnd ? (
+            <>
+              <h2 className="font-display text-xl font-semibold">No workout scheduled.</h2>
+              <p className="mt-2 text-ink-muted">
+                Nothing planned for {selectedDayLabel}. Your program ended on{' '}
+                {formatDisplayDate(programEnd!)}.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="font-display text-xl font-semibold">Rest day.</h2>
+              <p className="mt-2 text-ink-muted">Even Spartans recover.</p>
+              {currentPhase && (
+                <p className="mt-4 text-sm text-ink-muted">Phase: {currentPhase.name}</p>
+              )}
+            </>
           )}
         </GreekCard>
       ) : (

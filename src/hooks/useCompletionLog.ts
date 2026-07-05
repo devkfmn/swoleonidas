@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
+import { parseISO } from 'date-fns'
 import type { CompletionLog, CompletionLogItem } from '../types/program'
 import type { ResolvedWorkout } from '../lib/schedule/types'
+import { isDateEditable } from '../lib/dates/editable'
 import {
   deleteCompletionLog,
   resetAllLogsForProgram,
@@ -81,16 +83,19 @@ export function useCompletionLog(
     return syncLogWithWorkout(log, date, programId, workout)
   }, [log, workout, programId, date])
 
+  const canEdit = isDateEditable(parseISO(date))
+
   const persist = useCallback(
     async (next: CompletionLog) => {
-      if (!user) return
+      if (!user || !canEdit) return
       await saveCompletionLog(user.uid, next)
     },
-    [user],
+    [user, canEdit],
   )
 
   const toggleExercise = useCallback(
     async (exerciseId: string, completed: boolean, actual?: number) => {
+      if (!canEdit) return
       const base = prepareLog()
       if (!base || !workout) return
       const items = base.items.map((item) => {
@@ -101,19 +106,21 @@ export function useCompletionLog(
       })
       await persist({ ...base, items })
     },
-    [prepareLog, persist, workout],
+    [prepareLog, persist, workout, canEdit],
   )
 
   const setNote = useCallback(
     async (note: string) => {
+      if (!canEdit) return
       const base = prepareLog()
       if (!base) return
       await persist({ ...base, note })
     },
-    [prepareLog, persist],
+    [prepareLog, persist, canEdit],
   )
 
   const markAllComplete = useCallback(async () => {
+    if (!canEdit) return
     const base = prepareLog()
     if (!base || !workout) return
     const items = workout.items.map((item) => {
@@ -125,12 +132,12 @@ export function useCompletionLog(
       }
     })
     await persist({ ...base, items })
-  }, [prepareLog, persist, workout])
+  }, [prepareLog, persist, workout, canEdit])
 
   const resetDay = useCallback(async () => {
-    if (!user || !programId) return
+    if (!user || !programId || !canEdit) return
     await deleteCompletionLog(user.uid, date, programId)
-  }, [user, date, programId])
+  }, [user, date, programId, canEdit])
 
   const resetAllForProgram = useCallback(
     async (pid: string) => {

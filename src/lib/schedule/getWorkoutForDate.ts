@@ -1,14 +1,24 @@
-import { parseISO } from 'date-fns'
+import { isAfter, isBefore, parseISO, startOfDay } from 'date-fns'
 import type { Program } from '../validation/programSchema'
 import { toStorageDate } from '../dates/format'
 import { applyProgression, getElapsedDays, getElapsedWeeks } from './applyProgression'
 import { getCurrentPhase } from './getCurrentPhase'
 import { getCurrentWeek } from './getCurrentWeek'
+import { getProgramEndDate } from './getTimelineProgress'
 import type { ResolvedWorkout, ScheduledDay } from './types'
 import { getWeekdayName } from './weekdays'
 
 export function getWorkoutForDate(program: Program, date: Date): ScheduledDay {
   const dateStr = toStorageDate(date)
+  const dayStart = startOfDay(date)
+  const programStart = startOfDay(parseISO(program.startDate))
+  const programEnd = startOfDay(getProgramEndDate(program))
+
+  if (isBefore(dayStart, programStart) || isAfter(dayStart, programEnd)) {
+    const week = getCurrentWeek(program, date)
+    return { date: dateStr, week, phase: null, workout: null, isRestDay: true }
+  }
+
   const week = getCurrentWeek(program, date)
   const phase = getCurrentPhase(program, week)
   const elapsedDays = getElapsedDays(program, date)

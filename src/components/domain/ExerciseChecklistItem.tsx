@@ -15,6 +15,7 @@ interface ExerciseChecklistItemProps {
   item: DisplayItem
   completed: boolean
   actual?: number
+  readOnly?: boolean
   onToggle: (completed: boolean) => void
   onActualChange?: (actual: number) => void
 }
@@ -23,6 +24,7 @@ export function ExerciseChecklistItem({
   item,
   completed,
   actual,
+  readOnly = false,
   onToggle,
   onActualChange,
 }: ExerciseChecklistItemProps) {
@@ -30,13 +32,18 @@ export function ExerciseChecklistItem({
   const hasDetails = Boolean(item.description)
 
   return (
-    <div className="rounded-lg border border-stone-border bg-stone-elevated/50 p-3 transition-colors hover:bg-stone-elevated">
+    <div
+      className={`rounded-lg border border-stone-border bg-stone-elevated/50 p-3 transition-colors ${
+        readOnly ? 'opacity-80' : 'hover:bg-stone-elevated'
+      }`}
+    >
       <label className="flex items-start gap-3">
         <input
           type="checkbox"
           checked={completed}
+          disabled={readOnly}
           onChange={(e) => onToggle(e.target.checked)}
-          className="mt-1 h-5 w-5 rounded border-stone-border text-bronze focus:ring-bronze"
+          className="mt-1 h-5 w-5 rounded border-stone-border text-bronze focus:ring-bronze disabled:cursor-not-allowed"
         />
         <div className="min-w-0 flex-1">
           <p className={`font-medium ${completed ? 'text-ink line-through opacity-70' : 'text-ink'}`}>
@@ -56,9 +63,10 @@ export function ExerciseChecklistItem({
               <input
                 type="number"
                 min={0}
+                disabled={readOnly}
                 value={actual ?? ''}
                 onChange={(e) => onActualChange(Number(e.target.value))}
-                className="w-20 rounded border border-stone-border bg-stone-surface px-2 py-1 text-sm"
+                className="w-20 rounded border border-stone-border bg-stone-surface px-2 py-1 text-sm disabled:cursor-not-allowed"
                 placeholder={String(item.target)}
               />
             </div>

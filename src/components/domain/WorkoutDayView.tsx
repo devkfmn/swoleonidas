@@ -5,6 +5,8 @@ import { GreekCard } from '../ui/GreekCard'
 import { ProgressRing } from '../ui/ProgressRing'
 import { StoneButton } from '../ui/StoneButton'
 import { useCompletionLog } from '../../hooks/useCompletionLog'
+import { isDateEditable } from '../../lib/dates/editable'
+import { formatDisplayDateLong } from '../../lib/dates/format'
 import { getCompletionPercentage } from '../../lib/schedule/getDayStatus'
 import type { ResolvedWorkout } from '../../lib/schedule/types'
 import type { Phase, Program } from '../../lib/validation/programSchema'
@@ -36,6 +38,7 @@ export function WorkoutDayView({
   } = useCompletionLog(dateStr, programId, workout)
 
   const [noteDraft, setNoteDraft] = useState('')
+  const editable = isDateEditable(date)
 
   const exerciseMap = new Map(program.exercises.map((e) => [e.id, e]))
 
@@ -63,6 +66,11 @@ export function WorkoutDayView({
           {workout.estimatedMinutes && (
             <p className="text-sm text-ink-muted">~{workout.estimatedMinutes} min</p>
           )}
+          {!editable && (
+            <p className="mt-1 text-sm text-ink-muted">
+              You can log this workout on {formatDisplayDateLong(date)}.
+            </p>
+          )}
         </div>
       </div>
 
@@ -76,6 +84,7 @@ export function WorkoutDayView({
                 item={item}
                 completed={logItem?.completed ?? false}
                 actual={logItem?.actual}
+                readOnly={!editable}
                 onToggle={(completed) =>
                   toggleExercise(item.exerciseId, completed, logItem?.actual ?? item.target)
                 }
@@ -91,26 +100,29 @@ export function WorkoutDayView({
       <GreekCard title="Note" className="mb-6">
         <textarea
           value={noteDraft || log?.note || ''}
+          disabled={!editable}
           onChange={(e) => setNoteDraft(e.target.value)}
-          onBlur={() => setNote(noteDraft || log?.note || '')}
+          onBlur={() => editable && setNote(noteDraft || log?.note || '')}
           rows={3}
-          className="w-full rounded-lg border border-stone-border bg-stone-surface p-3 text-sm"
+          className="w-full rounded-lg border border-stone-border bg-stone-surface p-3 text-sm disabled:cursor-not-allowed"
           placeholder="How did it go?"
         />
       </GreekCard>
 
-      <div className="flex flex-wrap gap-2">
-        <StoneButton onClick={markAllComplete}>Mark all complete</StoneButton>
-        <StoneButton
-          variant="ghost"
-          onClick={async () => {
-            await resetDay()
-            setNoteDraft('')
-          }}
-        >
-          Reset day
-        </StoneButton>
-      </div>
+      {editable && (
+        <div className="flex flex-wrap gap-2">
+          <StoneButton onClick={markAllComplete}>Mark all complete</StoneButton>
+          <StoneButton
+            variant="ghost"
+            onClick={async () => {
+              await resetDay()
+              setNoteDraft('')
+            }}
+          >
+            Reset day
+          </StoneButton>
+        </div>
+      )}
     </>
   )
 }
