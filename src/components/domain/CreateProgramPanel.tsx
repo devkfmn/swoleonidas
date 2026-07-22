@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Program } from '../../lib/validation/programSchema'
 import { validateProgramJson } from '../../lib/validation/validateProgramJson'
 import { buildProgramPrompt, canBuildProgramPrompt } from '../../lib/prompt/buildProgramPrompt'
+import { generateProgramWithAi } from '../../lib/firebase/ai'
 import { exampleProgram } from '../../data/exampleProgram'
 import { WEEKDAYS_MONDAY_FIRST, WEEKDAY_LABELS, type Weekday } from '../../lib/schedule/weekdays'
 import { ConfirmDialog } from '../ui/ConfirmDialog'
@@ -43,6 +44,9 @@ export function CreateProgramPanel({
   const [validated, setValidated] = useState<Program | null>(null)
   const [pendingProgram, setPendingProgram] = useState<Program | null>(null)
   const [confirmUpdate, setConfirmUpdate] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [showPrompt, setShowPrompt] = useState(false)
 
   const promptInput = { goal, equipment, duration, preferredExercises, restDays }
   const promptReady = canBuildProgramPrompt(promptInput)
@@ -96,6 +100,33 @@ export function CreateProgramPanel({
     await navigator.clipboard.writeText(generatedPrompt)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleGenerateWithAi = async () => {
+    if (!promptReady || generating) return
+
+    setGenerating(true)
+    setErrors([])
+    setValidated(null)
+    setAiSummary(null)
+
+    const result = await generateProgramWithAi(promptInput)
+
+    if (result.success) {
+      setJsonText(JSON.stringify(result.program, null, 2))
+      setValidated(result.program)
+      setAiSummary(result.summary)
+      setErrors([])
+    } else {
+      if (result.rawText) {
+        setJsonText(result.rawText)
+      }
+      setAiSummary(result.summary ?? null)
+      setErrors(result.errors)
+      setValidated(null)
+    }
+
+    setGenerating(false)
   }
 
   const handleAddExercise = () => {
@@ -236,27 +267,45 @@ export function CreateProgramPanel({
         </div>
 
         <p className="mt-4 text-sm text-ink-muted">
-          Copy this prompt into ChatGPT, review the summary it returns, then paste the JSON below.
+          Generate a program with Gemini in-app, or copy the prompt to use ChatGPT manually.
         </p>
 
-        {promptReady && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <StoneButton onClick={handleGenerateWithAi} disabled={!promptReady || generating}>
+            {generating ? 'Generating...' : 'Generate with AI'}
+          </StoneButton>
+          <StoneButton
+            variant="secondary"
+            onClick={handleCopyPrompt}
+            disabled={!promptReady}
+          >
+            {copied ? 'Copied!' : 'Copy Prompt'}
+          </StoneButton>
+          <StoneButton
+            variant="ghost"
+            onClick={() => setShowPrompt((prev) => !prev)}
+            disabled={!promptReady}
+          >
+            {showPrompt ? 'Hide Prompt' : 'Show Prompt'}
+          </StoneButton>
+        </div>
+
+        {showPrompt && promptReady && (
           <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-stone-elevated p-3 text-xs">
             {generatedPrompt}
           </pre>
         )}
-
-        <StoneButton
-          className="mt-3"
-          onClick={handleCopyPrompt}
-          disabled={!promptReady}
-        >
-          {copied ? 'Copied!' : 'Copy Prompt'}
-        </StoneButton>
       </GreekCard>
 
-      <GreekCard title="Paste Program JSON">
+      {aiSummary && (
+        <GreekCard title="AI Summary">
+          <p className="whitespace-pre-wrap text-sm text-ink">{aiSummary}</p>
+        </GreekCard>
+      )}
+
+      <GreekCard title="Program JSON">
         <p className="mb-3 text-sm text-ink-muted">
-          Paste only the JSON block from ChatGPT&apos;s response. Only the JSON is validated and saved.
+          AI fills this automatically. You can also paste JSON from ChatGPT, then validate and save.
         </p>
         <textarea
           value={jsonText}
@@ -267,7 +316,7 @@ export function CreateProgramPanel({
           }}
           rows={14}
           className="w-full rounded-lg border border-stone-border bg-stone-surface p-3 font-mono text-sm"
-          placeholder="Paste your program JSON here..."
+          placeholder="Program JSON appears here after generation..."
         />
         <div className="mt-3 flex flex-wrap gap-2">
           <StoneButton
@@ -279,7 +328,7 @@ export function CreateProgramPanel({
           <StoneButton variant="secondary" onClick={handleValidate}>
             Validate
           </StoneButton>
-          <StoneButton onClick={handleSave} disabled={!jsonText.trim() || importing}>
+          <StoneButton onClick={handleSave} disabled={!jsonText.trim() || importing || generating}>
             {importing ? 'Saving...' : 'Save Program'}
           </StoneButton>
         </div>

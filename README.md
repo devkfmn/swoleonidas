@@ -153,13 +153,15 @@ The included `vercel.json` rewrites all routes to `index.html` for client-side r
 | Import | `/import` | Paste and validate program JSON |
 | Settings | `/settings` | Profile, sign out, data management |
 
-## Importing a program
+## Creating / importing a program
 
-1. Go to **Import Program**.
-2. Use the JSON template or ChatGPT prompt to generate a valid program.
-3. Click **Load Example Program** to try the bundled 24-week Greek God program.
-4. Validate, then import.
+1. Go to **Programs** and open create/import.
+2. Fill goal, equipment, and duration, then click **Generate with AI** (Firebase Gemini), or **Copy Prompt** for ChatGPT.
+3. Review the JSON, validate, then save.
+4. Click **Load Example Program** to try the bundled 24-week Greek God program.
 5. Activate the program from the **Programs** page.
+
+AI generation uses Firebase AI Logic + App Check. Set `VITE_FIREBASE_APPCHECK_SITE_KEY` in `.env.local` and Vercel.
 
 ## Architecture
 
